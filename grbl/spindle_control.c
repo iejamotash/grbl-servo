@@ -19,8 +19,17 @@
   along with Grbl.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/* RC-Servo PWM modification: switch between 0.6ms and 2.5ms pulse-width at 61Hz
+   Prescaler 1024 = 15625Hz / 256Steps =  61Hz	64µs/step -> Values 15 / 32 for 1ms / 2ms
+   Reload value = 0x07
+   Replace this file in C:\Program Files (x86)\Arduino\libraries\GRBL
+*/
+
 #include "grbl.h"
 
+#define RC_SERVO_SHORT     15       // Timer ticks for 0.6ms pulse duration  (9 for 0.6ms)
+#define RC_SERVO_LONG      32       // Timer ticks for 2.5 ms pulse duration  (39 for 2.5ms)
+//#define RC_SERVO_INVERT     1     // Uncomment to invert servo direction
 
 void spindle_init()
 {    
@@ -45,6 +54,7 @@ void spindle_init()
 
 void spindle_stop()
 {
+  /*
   // On the Uno, spindle enable and PWM are shared. Other CPUs have seperate enable pin.
   #ifdef VARIABLE_SPINDLE
     TCCRA_REGISTER &= ~(1<<COMB_BIT); // Disable PWM. Output voltage is zero.
@@ -62,6 +72,12 @@ void spindle_stop()
       SPINDLE_ENABLE_PORT &= ~(1<<SPINDLE_ENABLE_BIT); // Set pin to low
     #endif
   #endif  
+  */
+  #ifdef RC_SERVO_INVERT
+    OCR_REGISTER = RC_SERVO_LONG;
+  #else
+    OCR_REGISTER = RC_SERVO_SHORT;
+  #endif
 }
 
 
@@ -98,12 +114,18 @@ void spindle_set_state(uint8_t state, float rpm)
       if (rpm <= 0.0) { spindle_stop(); } // RPM should never be negative, but check anyway.
       else {
         #define SPINDLE_RPM_RANGE (SPINDLE_MAX_RPM-SPINDLE_MIN_RPM)
+        #define RC_SERVO_RANGE (RC_SERVO_LONG-RC_SERVO_SHORT)
         if ( rpm < SPINDLE_MIN_RPM ) { rpm = 0; } 
         else { 
           rpm -= SPINDLE_MIN_RPM; 
           if ( rpm > SPINDLE_RPM_RANGE ) { rpm = SPINDLE_RPM_RANGE; } // Prevent integer overflow
         }
-        current_pwm = floor( rpm*(PWM_MAX_VALUE/SPINDLE_RPM_RANGE) + 0.5);
+        // current_pwm = floor( rpm*(PWM_MAX_VALUE/SPINDLE_RPM_RANGE) + 0.5);
+        #ifdef RC_SERVO_INVERT
+          current_pwm = floor( RC_SERVO_LONG - rpm*(RC_SERVO_RANGE/SPINDLE_RPM_RANGE));
+        #else
+          current_pwm = floor( rpm*(RC_SERVO_RANGE/SPINDLE_RPM_RANGE) + RC_SERVO_SHORT);
+        #endif
         #ifdef MINIMUM_SPINDLE_PWM
           if (current_pwm < MINIMUM_SPINDLE_PWM) { current_pwm = MINIMUM_SPINDLE_PWM; }
         #endif
