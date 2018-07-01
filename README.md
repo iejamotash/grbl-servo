@@ -1,3 +1,34 @@
+# grbl-servo
+
+***
+
+This repository is inspired by the repository [robottini/grbl-servo](https://github.com/robottini/grbl-servo) which adds servo support to the standard grbl. Unfortunately, it is based on the version of the grbl 0.9i that contains bugs related to the homing of corexy machines. Therefore, i forked latest grbl 0.9j and made same changes for servo support (as in [robottini/grbl-servo](https://github.com/robottini/grbl-servo)) in it.
+
+***
+
+Original description from [robottini/grbl-servo](https://github.com/robottini/grbl-servo):
+
+> Use the PIN D11 to drive the servo. 
+> Use the commands M03 Sxxx (xxx between 0 and 255) to rotate the servo between 0-180.
+> The command M05 turn the servo to zero degrees.
+>
+> you can change the pulse duration in the file spindle_control.c:
+>
+> define RC_SERVO_SHORT     15       // Timer ticks for 0.6ms pulse duration  (9 for 0.6ms)
+>
+> define RC_SERVO_LONG      32       // Timer ticks for 2.5 ms pulse duration  (39 for 2.5ms)     
+>
+> define RC_SERVO_INVERT     1     // Uncomment to invert servo direction
+>
+> If you want to have the servo working from 0 --> 180 degrees change RC_SERVO_SHORT and put 9, RC_SERVO_LONG and put 39
+> If you want invert the servo direction uncomment the line above.
+>
+> I tested the code very well with 328p (Arduino Uno, Duemilanove etv), not with 2560 (Arduino Mega), but I think it would work well also with the Mega.
+
+***
+
+Original description from [grbl/grbl](https://github.com/grbl/grbl):
+
 ![GitHub Logo](https://github.com/gnea/gnea-Media/blob/master/Grbl%20Logo/Grbl%20Logo%20250px.png?raw=true)
 ***
 
